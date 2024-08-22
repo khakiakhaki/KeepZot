@@ -6,4 +6,5 @@ pref-ckey-min-head = 快捷键 : 隐藏主窗口
 pref-ckey-min-enable =
     .label = 启用
 
+pref-ckey-empty = 无快捷键
 

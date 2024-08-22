@@ -56,16 +56,50 @@ async function prefinit(_window) {
     const close_enable_cb = _window.document.querySelector('#cb-pref-ckey-close-enable');
     const min_enable_cb = _window.document.querySelector('#cb-pref-ckey-min-enable');
 
-    const ck_close_str = _window.document.querySelector('#prefpane-keepzot-set-close');
-    const ck_min_str = _window.document.querySelector('#prefpane-keepzot-set-min');
+    const bt_close_str = _window.document.querySelector('#bt-pref-keepzot-set-close');
+    const bt_min_str = _window.document.querySelector('#bt-pref-keepzot-set-min');
 
-    ck_close_str.addEventListener("change", (e) => {
-        popinfo("shortcut close change");
-    });
+    bt_close_str.textContent = Zotero.Prefs.get("extension.keepzot.shortcut.close", true) ? Zotero.Prefs.get("extension.keepzot.shortcut.close", true) : "None";
+    bt_min_str.textContent = Zotero.Prefs.get("extension.keepzot.shortcut.min", true) ? Zotero.Prefs.get("extension.keepzot.shortcut.close", true) : "None";
 
-    ck_min_str.addEventListener("change", (e) => {
-        popinfo("shortcut min change");
-    });
+    bt_close_str.addEventListener('click', (ev) => {
+        // Record pressed key
+        const curbutton = ev.target;
+        const win = Zotero.KeepZot.pref_window;
+
+        const keyDownListener = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const modifiers = [];
+            if (event.altKey) modifiers.push('Alt');
+            if (event.ctrlKey) modifiers.push('Ctrl');
+            if (event.shiftKey) modifiers.push('Shift');
+            if (event.metaKey) modifiers.push('Meta');
+
+            const key = !["Shift", "Meta", "Ctrl", "Alt", "Control"].includes(event.key) ? event.key : '';
+            const keyStr = [...modifiers, key].filter(Boolean).join('+');
+
+            curbutton.textContent =  `${keyStr}`;
+        };
+
+        const keyUpListener = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            win.removeEventListener("keydown", keyDownListener);
+            win.removeEventListener("keyup", keyUpListener);
+        };
+    win.addEventListener("keydown", keyDownListener);
+    win.addEventListener("keyup", keyUpListener);
+});
+
+    // bt_close_str.addEventListener("change", (e) => {
+    //     popinfo("shortcut close change");
+    // });
+
+    // bt_min_str.addEventListener("change", (e) => {
+    //     popinfo("shortcut min change");
+    // });
 
     close_enable_cb.addEventListener("command", (e) => {
         popinfo("shortcut close window enable");
@@ -81,5 +115,5 @@ function popinfo(msg, lasttime = 2000) {
     popMsg.changeHeadline("[KeepZot]", "", "");
     popMsg.addDescription(`[${msg}]`);
     popMsg.show();
-    popMsg.startCloseTimer(lasttime); // 毫秒
+    popMsg.startCloseTimer(lasttime); 
 }
