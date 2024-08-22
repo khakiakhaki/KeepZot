@@ -1,0 +1,16 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run CMD Script",
+            "type": "shell",
+            "command": "cmd.exe",
+            "args": ["/c", "pack.bat"], // 替换为你的 CMD 脚本名
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,0 +1,18 @@
+{
+    "addons": {
+      "keepzotero@kk": {
+        "updates": [
+          {
+            "version": "0.1",
+            "update_link": "http://localhost:8000/KeepZot.zip",
+            "update_hash": "sha256:e5ac442c4a3cxfc4ffec8b764673b7036d5984690978faa7df66d78b030761c2",
+            "applications": {
+              "zotero": {
+                "strict_min_version": "6.999"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
