@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>键盘事件监测</title>
+</head>
+<body>
+    <h1>按下任意键</h1>
+    <button id="button1" style="min-width: 100px;">点击设置快捷键 1</button>
+    <button id="button2" style="min-width: 100px;">点击设置快捷键 2</button>
+    <p id="output">1</p>
+    <p id="output2">1</p>
+    <script>
+        const button1 = document.getElementById('button1');
+        const button2 = document.getElementById('button2');
+        const output = document.getElementById('output');
+        const output2 = document.getElementById('output2');
+
+        let customShortcut1 = '';
+        let customShortcut2 = '';
+
+        // 设置快捷键 1
+        button1.addEventListener("click", () => {
+            button1.textContent = "按下任意键设置快捷键 1";
+            setupKeyListener((keyStr) => {
+                customShortcut1 = keyStr;
+                output.textContent = `快捷键 1 设置为: ${customShortcut1}`;
+                button1.textContent = `${keyStr}`; // 重置按钮文本
+            });
+        });
+
+        // 设置快捷键 2
+        button2.addEventListener("click", () => {
+            button2.textContent = "按下任意键设置快捷键 2";
+            setupKeyListener((keyStr) => {
+                customShortcut2 = keyStr;
+                output.textContent = `快捷键 2 设置为: ${customShortcut2}`;
+                button2.textContent = `${keyStr}`; // 重置按钮文本
+            });
+        });
+
+        // 设置键盘监听器
+        function setupKeyListener(callback) {
+
+            const keyDownListener = (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const modifiers = [];
+                if (event.altKey) modifiers.push('Alt');
+                if (event.ctrlKey) modifiers.push('Ctrl');
+                if (event.shiftKey) modifiers.push('Shift');
+                if (event.metaKey) modifiers.push('Meta');
+
+                let key = event.key === ' ' ? 'space' : event.key;
+                key = !["Shift", "Meta", "Ctrl", "Alt", "Control"].includes(event.key) ? key : '';
+                const keyStr = [...modifiers, key].filter(Boolean).join('+');
+
+                callback(keyStr);
+            };
+
+            const keyUpListener = (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                window.removeEventListener("keydown", keyDownListener);
+                window.removeEventListener("keyup", keyUpListener);
+            };
+
+            window.addEventListener("keydown", keyDownListener);
+            window.addEventListener("keyup", keyUpListener);
+
+        }
+
+
+
+        // 处理自定义快捷键事件
+        window.addEventListener("keydown", (event) => {
+            const modifiers = [];
+            if (event.altKey) modifiers.push('Alt');
+            if (event.ctrlKey) modifiers.push('Ctrl');
+            if (event.shiftKey) modifiers.push('Shift');
+            if (event.metaKey) modifiers.push('Meta');
+
+            let key = event.key === ' ' ? 'space' : event.key;
+            key = !["Shift", "Meta", "Ctrl", "Alt", "Control"].includes(event.key) ? key : '';
+
+            const keyStr = [...modifiers, key].filter(Boolean).join('+');
+
+            if (keyStr === customShortcut1) {
+                output2.textContent = `自定义快捷键 1 (${customShortcut1}) 被触发`;
+                event.preventDefault();
+                event.stopPropagation();
+            } else if (keyStr === customShortcut2) {
+                output2.textContent = `自定义快捷键 2 (${customShortcut2}) 被触发`;
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        });
+    </script>
+</body>
+</html>
