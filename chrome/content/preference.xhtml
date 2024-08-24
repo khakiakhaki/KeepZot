@@ -1,37 +1,38 @@
 <linkset>
-  <html:link rel="localization" href="keepzot.ftl" />
+    <html:link rel="localization" href="keepzot.ftl" />
 </linkset>
 
-<vbox id="KeepZot-prefpane" onload="Zotero.KeepZot.onPrefsEvent('load',{window})" >
-  <label><html:h2 data-l10n-id="pref-title"></html:h2></label>
-    <hbox style="display: inline-flex; align-items: center; text-align: left;">
-    <html:label
-        for="prefpane-keepzot-set-close"
-        data-l10n-id="pref-ckey-close-head"
-      ></html:label>
-      <button
-        style="min-width: 120px;"
-        id="bt-pref-keepzot-set-close"
-      ></button>
-      <checkbox
-        id="cb-pref-ckey-close-enable"
-        data-l10n-id="pref-ckey-close-enable"
-        preference="extension.keepzot.shortcut.close.enable"
-      ></checkbox>
+<vbox
+    id="KeepZot-prefpane"
+    onload="Zotero.KeepZot.onPrefsEvent('load',{window})"
+>
+    <label><html:h2 data-l10n-id="pref-title"></html:h2></label>
+    <html:label data-l10n-id="help"></html:label>
+    <hbox style="display: inline-flex; align-items: center; text-align: left">
+        <html:label
+            for="prefpane-keepzot-set-close"
+            data-l10n-id="pref-ckey-close-head"
+        ></html:label>
+        <button
+            style="min-width: 120px"
+            id="bt-pref-keepzot-set-close"
+        ></button>
+        <checkbox
+            id="cb-pref-ckey-close-enable"
+            data-l10n-id="pref-ckey-close-enable"
+            preference="extension.keepzot.shortcut.close.enable"
+        ></checkbox>
     </hbox>
-    <hbox style="display: inline-flex; align-items: center; text-align: left;">
-      <html:label
-        for="prefpane-keepzot-set-min"
-        data-l10n-id="pref-ckey-min-head"
-      ></html:label>
-      <button
-        style="min-width: 120px;"
-        id="bt-pref-keepzot-set-min"
-      ></button>
-      <checkbox
-        id = "cb-pref-ckey-min-enable"
-        data-l10n-id="pref-ckey-min-enable"
-        preference="extension.keepzot.shortcut.min.enable"
-      ></checkbox>
+    <hbox style="display: inline-flex; align-items: center; text-align: left">
+        <html:label
+            for="prefpane-keepzot-set-min"
+            data-l10n-id="pref-ckey-min-head"
+        ></html:label>
+        <button style="min-width: 120px" id="bt-pref-keepzot-set-min"></button>
+        <checkbox
+            id="cb-pref-ckey-min-enable"
+            data-l10n-id="pref-ckey-min-enable"
+            preference="extension.keepzot.shortcut.min.enable"
+        ></checkbox>
     </hbox>
-  </vbox>
+</vbox>

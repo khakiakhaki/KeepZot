@@ -3,11 +3,11 @@
     "name": "KeepZot",
     "version": "0.2",
     "description": "Minimize zotero to tray for zotero 7",
-    "homepage_url": "https://localhost:8000",
+    "homepage_url": "https://github.com/khakiakhaki/KeepZot",
     "applications": {
         "zotero": {
             "id": "keepzot@kk",
-            "update_url": "https://localhost:8000/keepzot_update.json",
+            "update_url": "https://raw.githubusercontent.com/khakiakhaki/KeepZot/main/keepzot_update.json",
             "strict_min_version": "6.999",
             "strict_max_version": "7.0.*"
         }
