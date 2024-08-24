@@ -1,25 +1,22 @@
-
 Zotero.KeepZot = {
     closeFunc: null,
-    mainwindow : null,
-    pref_window: null,
-    shortcuts: {
-        close: '',
-        min: ''
-    },
+    mainwindow: null,
+    prefWindow: null,
+    enableListen: false,
 
-
-    init() {
-        if (!this.mainwindow) {
-            this.getWindow()
+    init(window) {
+        if (window) {
+            this.mainwindow = window;
+        } else {
+            this.getWindow();
         }
         this.closeFunc = this.mainwindow.close;
-        this.updateshortcut(['close','min']);
+        this.initShortcut();
     },
 
     redirectClose() {
         this.mainwindow.close = this.mainwindow.minimize;
-    }, 
+    },
 
     cancelRedirect() {
         if (!this.mainwindow) {
@@ -34,12 +31,7 @@ Zotero.KeepZot = {
         this.mainwindow = Zotero.getMainWindow();
     },
 
-    directClose() {
-        this.mainwindow.close = this.closeFunc;
-        this.mainwindow.close();
-    },
-
-    async onPrefsEvent(type , data){
+    async onPrefsEvent(type, data) {
         switch (type) {
             case "load":
                 prefinit(data.window);
@@ -49,63 +41,99 @@ Zotero.KeepZot = {
         }
     },
 
-    updateshortcut(keys) {
-        if (!keys || !Array.isArray(keys)) {
-            return;
+    // initshortccut
+    initShortcut() {
+        if (this.needEnable() && !this.enableListen) {
+            if (this.mainwindow.ZoteroPane) {
+                this.mainwindow.addEventListener(
+                    "keydown",
+                    this.keydownListener
+                );
+                this.enableListen = true;
+
+                const closelisten = (e) => {
+                    this.mainwindow.removeEventListener(
+                        "keydown",
+                        this.keydownListener
+                    );
+                    this.mainwindow.removeEventListener("close", closelisten);
+                    this.enableListen = false; // 可能需要重置为 false
+                };
+
+                this.mainwindow.addEventListener("close", closelisten);
+            }
+        } else if (!this.needEnable && this.enableListen) {
+            if (this.mainwindow.ZoteroPane) {
+                this.mainwindow.removeEventListener(
+                    "keydown",
+                    this.keydownListener
+                );
+            }
+            this.enableListen = false;
         }
-        keys.forEach(key => {
-            let value = prefsGet(key);
-            if (value && value !== this.shortcuts[key]) {
-                this.shortcuts[key] = value;
-            };
-        });
     },
 
-    initshortcut() {
-        let needEnable = false;
-        for (const key of ['min', 'close']) {
-            const value = Boolean(prefsGet(key + ".enable") && this.shortcuts[key]);
+    // remove eventlisten
+    removeShortcut() {
+        if (this.enableListen) {
+            this.enableListen = false;
+            this.mainwindow.removeEventListener(
+                "keydown",
+                this.keydownListener
+            );
+        }
+    },
+
+    // check if need enable ths eventlisten
+    needEnable() {
+        for (const key of ["min", "close"]) {
+            const value = Boolean(prefsGet(key + ".enable") && prefsGet(key));
             if (value) {
-                needEnable = ture;
-                break;
+                return true;
             }
         }
-        if (needEnable && this.mainwindow.ZoteroPane ) {
-            this.mainwindow.addEventListener("keydown", this.keydownListener);
-        }
     },
 
-    keydownListener(event){
-
+    keydownListener(event) {
         const modifiers = [];
-        if (event.altKey) modifiers.push('Alt');
-        if (event.ctrlKey) modifiers.push('Ctrl');
-        if (event.shiftKey) modifiers.push('Shift');
-        if (event.metaKey && Zotero.isMac) modifiers.push('Meta');
+        if (event.altKey) modifiers.push("Alt");
+        if (event.ctrlKey) modifiers.push("Ctrl");
+        if (event.shiftKey) modifiers.push("Shift");
+        if (event.metaKey && Zotero.isMac) modifiers.push("Meta");
 
-        let key = event.key === ' ' ? 'space' : event.key;
-        key = !["Shift", "Meta", "Ctrl", "Alt", "Control"].includes(event.key) ? key : '';
+        let key = event.key === " " ? "space" : event.key;
+        key = !["Shift", "Meta", "Ctrl", "Alt", "Control"].includes(event.key)
+            ? key
+            : "";
 
-        const keyStr = [...modifiers, key].filter(Boolean).join('+');
+        const keyStr = [...modifiers, key]
+            .filter(Boolean)
+            .join("+")
+            .toLowerCase();
 
-        if (keyStr === this.shortcuts.min && prefsGet("min.enable") ) {
-            this.mainwindow.minimize()
+        if (keyStr === prefsGet("min") && prefsGet("min.enable")) {
+            event.currentTarget.minimize();
             event.preventDefault();
             event.stopPropagation();
-        } else if (keyStr === this.shortcuts.close && prefsGet("close.enable") ) {
-            this.mainwindow.close();
+        } else if (keyStr === prefsGet("close") && prefsGet("close.enable")) {
+            // goQuitApplication("1");
+            Services.startup.quit(Services.startup.eForceQuit);
             event.preventDefault();
             event.stopPropagation();
         }
-    }
+    },
 };
 
-
-
-
 async function prefinit(_window) {
+    Zotero.KeepZot.prefWindow = _window;
 
-    Zotero.KeepZot.pref_window = _window;
+    const shortcuts = {
+        close: prefsGet("close"),
+        min: prefsGet("min"),
+        // exampleKey: prefsGet("exampleKey")
+    };
+
+    let currentKeyListeners = null;
 
     function setupKeyListener(callback) {
         const keyDownListener = (event) => {
@@ -113,79 +141,134 @@ async function prefinit(_window) {
             event.stopPropagation();
 
             const modifiers = [];
-            if (event.altKey) modifiers.push('Alt');
-            if (event.ctrlKey) modifiers.push('Ctrl');
-            if (event.shiftKey) modifiers.push('Shift');
-            if (event.metaKey) modifiers.push('Meta');
+            if (event.altKey) modifiers.push("Alt");
+            if (event.ctrlKey) modifiers.push("Ctrl");
+            if (event.shiftKey) modifiers.push("Shift");
+            if (event.metaKey && Zotero.isMac) modifiers.push("Meta");
 
-            let key = event.key === ' ' ? 'space' : event.key;
-            key = !["Shift", "Meta", "Ctrl", "Alt", "Control"].includes(event.key) ? key : '';
-            const keyStr = [...modifiers, key].filter(Boolean).join('+');
+            let key = event.key === " " ? "space" : event.key;
+            key = !["Shift", "Meta", "Ctrl", "Alt", "Control"].includes(
+                event.key
+            )
+                ? key
+                : "";
+            const keyStr = [...modifiers, key]
+                .filter(Boolean)
+                .join("+")
+                .toLocaleLowerCase();
 
             callback(keyStr);
         };
 
         const keyUpListener = (event) => {
+            Zotero.KeepZot.prefWindow.removeEventListener(
+                "keydown",
+                keyDownListener
+            );
+            Zotero.KeepZot.prefWindow.removeEventListener(
+                "keyup",
+                keyUpListener
+            );
             event.preventDefault();
             event.stopPropagation();
-            Zotero.KeepZot.pref_window.removeEventListener("keydown", keyDownListener);
-            Zotero.KeepZot.pref_window.removeEventListener("keyup", keyUpListener);
         };
 
-        Zotero.KeepZot.pref_window.addEventListener("keydown", keyDownListener);
-        Zotero.KeepZot.pref_window.addEventListener("keyup", keyUpListener);
-    };
+        Zotero.KeepZot.prefWindow.addEventListener("keydown", keyDownListener);
+        Zotero.KeepZot.prefWindow.addEventListener("keyup", keyUpListener);
 
-    const close_enable_cb = _window.document.querySelector('#cb-pref-ckey-close-enable');
-    const min_enable_cb = _window.document.querySelector('#cb-pref-ckey-min-enable');
+        return { keyDownListener, keyUpListener }; // 返回监听器
+    }
 
-    const bt_close_str = _window.document.querySelector('#bt-pref-keepzot-set-close');
-    const bt_min_str = _window.document.querySelector('#bt-pref-keepzot-set-min');
+    function setupShortcutButton(button, preferenceKey) {
+        button.addEventListener("click", () => {
+            let prevalue = button.textContent;
+            button.textContent = "[Press any key]";
 
-    Zotero.KeepZot.updateshortcut();
-    bt_close_str.textContent = Zotero.KeepZot.shortcuts.close;
-    bt_min_str.textContent = Zotero.KeepZot.shortcuts.min;
+            const blurListener = () => {
+                prefsSet(preferenceKey, "");
+                button.textContent = "[None]";
+                Zotero.KeepZot.initShortcut();
+                Zotero.KeepZot.prefWindow.removeEventListener(
+                    "keydown",
+                    keyDownListener
+                );
+                Zotero.KeepZot.prefWindow.removeEventListener(
+                    "keyup",
+                    keyUpListener
+                );
+                button.removeEventListener("blur", blurListener);
+            };
 
-    bt_close_str.addEventListener('click', (ev) => {
-        // Record pressed key
-        bt_close_str.textContent = "[Press any key]";
-        setupKeyListener((keyStr) => {
-            bt_close_str.textContent = `${keyStr}`; // 更新按钮文本
-            prefsSet("close", keyStr);
-            Zotero.KeepZot.updateshortcut(["close"]);
+            button.addEventListener("blur", blurListener);
+            const { keyDownListener, keyUpListener } = setupKeyListener(
+                (keyStr) => {
+                    const conflictingKeys = Object.keys(shortcuts).filter(
+                        (key) =>
+                            key !== preferenceKey && shortcuts[key] === keyStr
+                    );
+
+                    button.removeEventListener("blur", blurListener);
+                    if (conflictingKeys.length === 0) {
+                        button.textContent = keyStr;
+                        prefsSet(preferenceKey, keyStr);
+                        shortcuts[preferenceKey] = keyStr;
+                        Zotero.KeepZot.initShortcut();
+                    } else {
+                        button.textContent =
+                            "[conflict] still " +
+                            prevalue.replace(/^\[conflict\] still\s*/, "");
+                    }
+                    button.removeEventListener("blur", blurListener);
+                }
+            );
         });
-    });
+    }
 
-    bt_min_str.addEventListener("click", (event) => {
-        bt_min_str.textContent = "[Press any key]";
-        setupKeyListener((keyStr) => {
-            bt_min_str.textContent = `${keyStr}`; // 更新按钮文本
-            prefsSet("min", keyStr);
-            Zotero.KeepZot.updateshortcut(["min"]);
-        });
-    });
+    const close_enable_cb = _window.document.querySelector(
+        "#cb-pref-ckey-close-enable"
+    );
+    const min_enable_cb = _window.document.querySelector(
+        "#cb-pref-ckey-min-enable"
+    );
+
+    const bt_close_str = _window.document.querySelector(
+        "#bt-pref-keepzot-set-close"
+    );
+    const bt_min_str = _window.document.querySelector(
+        "#bt-pref-keepzot-set-min"
+    );
+
+    let value = prefsGet("close");
+    bt_close_str.textContent = value ? value : "[None]";
+    value = prefsGet("min");
+    bt_min_str.textContent = value ? value : "[None]";
+
+    // settting one
+    setupShortcutButton(bt_close_str, "close");
+    setupShortcutButton(bt_min_str, "min");
 
     // enable  close
     close_enable_cb.addEventListener("command", (e) => {
+        Zotero.KeepZot.initShortcut();
         popinfo("shortcut close window enable");
     });
 
     // enable min
     min_enable_cb.addEventListener("command", (e) => {
+        Zotero.KeepZot.initShortcut();
         popinfo("shortcut minimize window enable");
     });
-
-};
+}
 
 function popinfo(msg) {
     const popMsg = new Zotero.ProgressWindow({ closeOnClick: true });
     popMsg.changeHeadline("[KeepZot]", "", "");
     popMsg.addDescription(`[${msg}]`);
     popMsg.show();
-    popMsg.startCloseTimer(1000); 
-};
+    popMsg.startCloseTimer(3000);
+}
 
-function prefsSet(key,value) {
+function prefsSet(key, value) {
     return Zotero.Prefs.set("extension.keepzot.shortcut." + key, value, true);
 }
 

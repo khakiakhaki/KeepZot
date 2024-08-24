@@ -1,0 +1,17 @@
+{
+    "addons": {
+      "keepzotero@kk": {
+        "updates": [
+          {
+            "version": "0.2",
+            "update_link":"https://github.com/khakiakhaki/KeepZot/release/releases/latest/download/keepzot.xpi",
+            "applications": {
+              "zotero": {
+                "strict_min_version": "6.999"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }

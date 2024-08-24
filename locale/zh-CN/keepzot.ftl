@@ -7,4 +7,4 @@ pref-ckey-min-enable =
     .label = 启用
 
 pref-ckey-empty = 无快捷键
-
+help = 点击快捷键后按下快捷键设置快捷键

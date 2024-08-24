@@ -6,4 +6,4 @@ pref-ckey-min-head   = shortcut : Minimize window
 pref-ckey-min-enable =
     .label = Enable
 
-pref-ckey-empty = Not Set
+help = click the shorcut then press shortcut key to set 

@@ -2,8 +2,7 @@
 
 var chromeHandle;
 
-
-function log(msg){
+function log(msg) {
     Zotero.debug("keepzot: " + msg);
 }
 
@@ -21,25 +20,27 @@ async function startup({ id, version, resourceURI, rootURI }, reason) {
     }
 
     Zotero.PreferencePanes.register({
-        pluginID: 'keepzot@kk',
-        src: rootURI + 'chrome/content/preference.xhtml',
+        pluginID: "keepzot@kk",
+        src: rootURI + "chrome/content/preference.xhtml",
     });
 
     var aomStartup = Components.classes[
         "@mozilla.org/addons/addon-manager-startup;1"
     ].getService(Components.interfaces.amIAddonManagerStartup);
-    var manifestURI = Services.io.newURI(rootURI + 'manifest.json');
-    Services.scriptloader.loadSubScript(rootURI + 'chrome/content/keepzot.js');
+    var manifestURI = Services.io.newURI(rootURI + "manifest.json");
+    Services.scriptloader.loadSubScript(rootURI + "chrome/content/keepzot.js");
     chromeHandle = aomStartup.registerChrome(manifestURI, [
-        ["content", "keepzot", rootURI + "chrome/content/"]
+        ["content", "keepzot", rootURI + "chrome/content/"],
     ]);
 
+    await Zotero.Promise.delay(1000);
     Zotero.KeepZot.init();
     Zotero.KeepZot.redirectClose();
 }
 
 async function onMainWindowLoad({ window }, reason) {
     log("load");
+    await Zotero.Promise.delay(1000);
     Zotero.KeepZot.init();
     Zotero.KeepZot.redirectClose();
 }
@@ -54,12 +55,12 @@ function shutdown({ id, version, resourceURI, rootURI }, reason) {
     if (reason === APP_SHUTDOWN) {
         return;
     }
-    Zotero.KeepZot.cancelRedirect(null);
+    Zotero.KeepZot.cancelRedirect();
     mainwindow = null;
 
     if (typeof Zotero === "undefined") {
         Zotero = Components.classes["@zotero.org/Zotero;1"].getService(
-        Components.interfaces.nsISupports,
+            Components.interfaces.nsISupports
         ).wrappedJSObject;
     }
 
